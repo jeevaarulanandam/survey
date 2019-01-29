@@ -1,8 +1,26 @@
 const express = require('express');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const mongoose = require('mongoose');
 const keys = require('./configs/keys');
+
+require('./services/passport');
+require('./models/User');
+
 const app = express();
+
+mongoose.connect(keys.mongoURI, {
+    useNewUrlParser: true
+});
+
+/**
+ * <code>
+ * const authRoutes = require('./routes/authRoutes');
+ * these line written as
+ * authRoutes(app);
+ * 
+ * Pass the app to authRoutes.So authRoutes can access the app object
+ */
+
+require('./routes/authRoutes')(app)
 
 app.get('/mylife', (req, res) => {
     res.send({
@@ -15,27 +33,6 @@ app.get('/', (req, res) => {
         test: "Hello World"
     })
 });
-
-passport.use(
-    new GoogleStrategy({
-    clientID: keys.googleClientId,
-    clientSecret: keys.googleClientSecretId,
-    callbackURL:'/auth/google/callback'
-},
-(accessToken,refreshToken,profile,done)=>{
-    console.log("AT:",accessToken);
-     console.log("RT:",refreshToken);
-      console.log("Profile:",profile);
-       console.log(accessToken);
-}
-));
-
-app.get('/auth/google',
-passport.authenticate('google',{
-    scope: ['profile', 'email']
-}));
-
-app.get('/auth/google/callback', passport.authenticate('google'));
 
 const PORT = process.env.PORT || 5000
 app.listen(5000);
